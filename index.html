@@ -1006,14 +1006,14 @@ async function initRecipientView(){
 
 function renderRecipientView(){
   const c = cur(); if(!c) return;
-  // Cover image — grab src from the organizer cover
-  const coverImg = document.querySelector('#cardCover .hippo-img');
+
+  // Get cover image from any hippo-img on page
+  const coverImg = document.querySelector('.hippo-img');
   if(coverImg) document.getElementById('rCoverImg').src = coverImg.src;
 
   const heading = greetHeading(c).replace('<br>', ' ');
   document.getElementById('rHeading').textContent = heading;
   document.getElementById('rCoverHeading').textContent = heading;
-  document.getElementById('rTagline').textContent = c.tagline || '';
   document.getElementById('rCoverTagline').textContent = c.tagline || '';
 
   // Render messages into pages (MSGS_PER_PAGE per page, read-only)
@@ -1045,7 +1045,6 @@ function renderRecipientView(){
     nav.style.display = 'none';
   }
 }
-
 function rChangePage(dir){
   const c = cur(); if(!c) return;
   const total = Math.ceil(c.messages.length / MSGS_PER_PAGE);
