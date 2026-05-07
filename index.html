@@ -738,7 +738,33 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
   </div>
 </div>
 
-<!-- SHARE LINK MODAL -->
+<!-- SCRIPT SETUP MODAL -->
+<div class="overlay" id="scriptSetupModal">
+  <div class="modal">
+    <h3>🔧 Connect Google Sheet</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+      This enables real-time sharing so everyone sees each other's signatures.
+    </p>
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:12px;line-height:1.9;color:var(--text);">
+      <strong>Steps (5 min):</strong><br>
+      1. Go to <a href="https://sheets.google.com" target="_blank" style="color:var(--green)">sheets.google.com</a> → create a new blank sheet<br>
+      2. Click <strong>Extensions → Apps Script</strong><br>
+      3. Delete all code, paste the <strong>shippo-apps-script.js</strong> file contents<br>
+      4. Click <strong>Deploy → New deployment → Web app</strong><br>
+      5. Set <em>"Who has access"</em> to <strong>Anyone</strong> → Deploy<br>
+      6. Copy the Web App URL and paste below
+    </div>
+    <div class="fld">
+      <label>Apps Script Web App URL</label>
+      <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec"
+        style="font-family:monospace;font-size:12px;">
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('scriptSetupModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveScriptUrl()">Save & connect</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="shareLinkModal">
   <div class="modal">
     <h3>🔗 Share this card</h3>
@@ -810,67 +836,37 @@ const CARD_ID = (()=>{
 })();
 const IS_RECIPIENT = new URLSearchParams(window.location.search).get('view') === 'recipient';
 
-// ── SHARED STORAGE via Anthropic API ─────────────────────────────────────
-// We use Claude to store/retrieve card data as a shared key-value store.
-// The model acts as a simple JSON database — any user can read/write the
-// same card by ID, making real-time sync across teammates possible.
-
-const API = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-haiku-4-5-20251001';
-
-async function apiStore(action, cardId, data){
-  // action: 'get' | 'set' | 'push' | 'delete'
-  let prompt = '';
-  if(action === 'get'){
-    prompt = `Return ONLY the raw JSON stored for card ID "${cardId}", or exactly null if not found. No explanation, no markdown.`;
-  } else if(action === 'set'){
-    prompt = `Store this JSON for card ID "${cardId}" and return exactly {"ok":true}:\n${JSON.stringify(data)}`;
-  } else if(action === 'push'){
-    prompt = `Add this message to the messages array for card ID "${cardId}" and return the updated full card JSON only:\n${JSON.stringify(data)}`;
-  } else if(action === 'delete'){
-    prompt = `Remove message at index ${data.index} from card ID "${cardId}" and return the updated full card JSON only.`;
-  }
-
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4096,
-        system: `You are a JSON key-value database. You store card data objects indexed by card ID.
-Current database state (update this mentally with each operation):
-${JSON.stringify(dbCache)}
-Rules: Return ONLY raw JSON, no markdown fences, no explanation. Keep stored data exactly as provided.`,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const json = await res.json();
-    const text = (json.content?.[0]?.text || '').trim().replace(/^```json|^```|```$/gm,'').trim();
-    return text === 'null' ? null : JSON.parse(text);
-  } catch(e) { return null; }
-}
-
-// In-memory cache so the "database" is consistent within a session
-let dbCache = {};
+// ── SHARED STORAGE via Google Apps Script ────────────────────────────────
+// Set this to your deployed Apps Script Web App URL after deploying
+const SCRIPT_URL = localStorage.getItem('shippo-script-url') || '';
 
 async function save(){
+  if (!SCRIPT_URL) { saveLocal(); return; }
   try {
     const c = cur(); if(!c) return;
-    dbCache[CARD_ID] = c;
-    await apiStore('set', CARD_ID, c);
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveMeta', cardId: CARD_ID, cardMeta: {
+        name: c.name, occasion: c.occasion, theme: c.theme, tagline: c.tagline
+      }})
+    });
+    saveLocal();
   } catch(e) { saveLocal(); }
 }
 
 async function saveNewSignature(msg){
-  try {
-    // Load latest first to avoid overwrites
-    await load();
+  if (!SCRIPT_URL) {
     const c = cur(); if(!c) return;
     c.messages.push(msg);
-    dbCache[CARD_ID] = c;
-    await apiStore('set', CARD_ID, c);
     saveLocal();
+    return;
+  }
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'add', cardId: CARD_ID, message: msg })
+    });
+    await load(); // reload to get server state
   } catch(e) {
     const c = cur(); if(!c) return;
     c.messages.push(msg);
@@ -879,27 +875,29 @@ async function saveNewSignature(msg){
 }
 
 async function deleteSignatureRemote(i){
+  if (!SCRIPT_URL) { saveLocal(); return; }
   try {
-    const c = cur(); if(!c) return;
-    c.messages.splice(i, 1);
-    dbCache[CARD_ID] = c;
-    await apiStore('set', CARD_ID, c);
-    saveLocal();
-  } catch(e) { saveLocal(); }
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', cardId: CARD_ID, index: i })
+    });
+  } catch(e) {}
+  await load();
 }
 
 async function load(){
+  if (!SCRIPT_URL) { loadLocal(); return; }
   try {
-    const remote = await apiStore('get', CARD_ID, null);
-    if(remote && remote.messages !== undefined){
-      dbCache[CARD_ID] = remote;
-      const local = cur();
-      if(local){
-        local.messages = remote.messages || [];
-        if(remote.name)     local.name     = remote.name;
-        if(remote.occasion) local.occasion = remote.occasion;
-        if(remote.theme)    local.theme    = remote.theme;
-        if(remote.tagline)  local.tagline  = remote.tagline;
+    const res = await fetch(`${SCRIPT_URL}?action=get&cardId=${CARD_ID}`);
+    const data = await res.json();
+    const c = cur();
+    if (c && data.messages !== undefined) {
+      c.messages = data.messages.map(m => { const r = {...m}; delete r._row; return r; });
+      if (data.meta) {
+        if(data.meta.name)     c.name     = data.meta.name;
+        if(data.meta.occasion) c.occasion = data.meta.occasion;
+        if(data.meta.theme)    c.theme    = data.meta.theme;
+        if(data.meta.tagline)  c.tagline  = data.meta.tagline;
       }
       saveLocal();
     }
@@ -961,7 +959,12 @@ async function init(){
   currentId = cards[0].id;
   await load();
   lastMsgCount = cur()?.messages?.length || 0;
-  document.getElementById('shareSub').innerHTML = 'Share the link below — teammates open it and sign. <span class="live-dot">Live sync every 5s</span>';
+  if (!SCRIPT_URL) {
+    document.getElementById('shareSub').innerHTML = '⚠️ <a href="#" onclick="showScriptSetup();return false;" style="color:var(--green)">Connect Google Sheet</a> to enable real-time sync';
+    document.getElementById('copyBtn').textContent = '⚙️ Set up';
+  } else {
+    document.getElementById('shareSub').innerHTML = 'Share the link — teammates open it and sign. <span class="live-dot">Live sync every 5s</span>';
+  }
   refreshCollect();
   startPolling();
 }
@@ -1211,6 +1214,15 @@ function changePage(areaId, countId, editable, dir) {
   const totalPages = Math.ceil(c.messages.length / MSGS_PER_PAGE);
   pageState[stateKey] = Math.max(0, Math.min(totalPages - 1, pageState[stateKey] + dir));
   renderSigsInto(areaId, countId, c, editable);
+}
+
+function showScriptSetup(){ document.getElementById('scriptSetupModal').classList.add('open'); }
+function saveScriptUrl(){
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  if(!url) return;
+  localStorage.setItem('shippo-script-url', url);
+  closeModal('scriptSetupModal');
+  location.reload();
 }
 
 function copyShareLink(){
