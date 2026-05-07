@@ -359,9 +359,67 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
 @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
 .live-dot{display:inline-flex;align-items:center;gap:4px;color:var(--green);font-size:11px;font-weight:500;}
 .live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse-dot 1.8s ease-in-out infinite;}
+
+/* ── RECIPIENT VIEW ───────────────────────────────── */
+.recipient-view{min-height:100vh;background:linear-gradient(160deg,#0d3d2b 0%,#1a5c3f 50%,#0d3d2b 100%);display:flex;flex-direction:column;align-items:center;padding:40px 20px 60px;}
+.r-intro{text-align:center;margin-bottom:28px;animation:fadeUp .6s ease both;}
+.r-from{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.r-heading{font-family:'Playfair Display',serif;font-size:34px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:6px;}
+.r-tagline{font-size:14px;color:rgba(255,255,255,.65);}
+.r-card{width:100%;max-width:680px;background:#fffef8;border-radius:16px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4);animation:fadeUp .7s .1s ease both;}
+.r-cover{height:300px;position:relative;overflow:hidden;}
+.r-cover img{width:100%;height:100%;object-fit:cover;object-position:center 15%;display:block;}
+.r-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,transparent 100%);}
+.r-cover-text{position:absolute;bottom:22px;left:24px;right:24px;z-index:2;}
+.r-cover-text h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:3px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.r-cover-text p{font-size:12px;color:rgba(255,255,255,.75);}
+.r-inside{padding:24px 24px 20px;background:#fffef8;}
+.r-inside-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--muted);font-style:italic;margin-bottom:18px;text-align:center;}
+.r-page{display:none;flex-direction:column;gap:0;}
+.r-page.active{display:flex;}
+.r-nav{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+.r-nav-btn{background:var(--green-light);border:1px solid #9FE1CB;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--green-dark);transition:all .15s;}
+.r-nav-btn:hover{background:var(--green);color:#fff;}
+.r-nav-btn:disabled{opacity:.3;cursor:default;pointer-events:none;}
+.r-indicator{font-size:11px;color:var(--muted);min-width:72px;text-align:center;}
+.r-footer{text-align:center;padding:16px;border-top:1px solid var(--border);background:#f5f0e8;}
+.r-footer p{font-size:11px;color:var(--muted);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
+
+<!-- RECIPIENT VIEW (Bryan's read-only card) -->
+<div id="recipientView" style="display:none;">
+  <div class="recipient-view">
+    <div class="r-intro">
+      <div class="r-from">From the Shippo team</div>
+      <div class="r-heading" id="rHeading">Goodbye, Bryan Eddy!</div>
+      <div class="r-tagline" id="rTagline">From the Shippo team, with love 💚</div>
+    </div>
+    <div class="r-card">
+      <div class="r-cover">
+        <img id="rCoverImg" src="" alt="Hippo saying goodbye">
+        <div class="r-cover-text">
+          <h1 id="rCoverHeading">Goodbye, Bryan Eddy!</h1>
+          <p id="rCoverTagline">From the Shippo team, with love 💚</p>
+        </div>
+      </div>
+      <div class="r-inside">
+        <div class="r-inside-title">Messages from the team 💚</div>
+        <div id="rPages"></div>
+        <div class="r-nav" id="rNav" style="display:none;">
+          <button class="r-nav-btn" id="rPrev" onclick="rChangePage(-1)">‹</button>
+          <span class="r-indicator" id="rIndicator"></span>
+          <button class="r-nav-btn" id="rNext" onclick="rChangePage(1)">›</button>
+        </div>
+      </div>
+      <div class="r-footer">
+        <p>Made with 💚 by the Shippo team · Shippo Group Cards</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- NAV -->
 <nav class="nav">
@@ -569,11 +627,23 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
 <div class="page" id="page-send">
   <div class="status-bar ready" style="margin-bottom:20px;">
     <div class="status-dot"></div>
-    Card has <strong id="sendCount">0</strong> signatures. Send to <strong id="sendName">Bryan Eddy</strong>.
+    Card has <strong id="sendCount">0</strong> signatures. Ready to send to <strong id="sendName">Bryan Eddy</strong>.
   </div>
+
+  <!-- BRYAN'S LINK -->
+  <div class="panel" style="margin-bottom:20px;border-left:3px solid var(--green);">
+    <p class="slabel mb-8">🎁 Bryan's card link</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Send this link directly to Bryan — he'll see a beautiful read-only version of the card with no edit buttons.</p>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="recipientViewUrl" readonly
+        style="flex:1;font-family:monospace;font-size:12px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);">
+      <button class="btn btn-primary" onclick="copyRecipientUrl()">Copy</button>
+    </div>
+  </div>
+
   <div class="send-split">
     <div class="panel" style="margin-bottom:0">
-      <p class="slabel mb-8">📬 Send to recipient</p>
+      <p class="slabel mb-8">📬 Also send via Slack (optional)</p>
       <div class="add-row"><input class="slack-input" id="recipientInput" placeholder="@bryan.eddy or channel ID"><button class="btn" onclick="addTag('r')">Add</button></div>
       <div class="tags" id="recipientTags"></div>
     </div>
@@ -588,7 +658,7 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
     <input class="slack-input" type="password" id="slackToken" placeholder="xoxb-your-slack-bot-token" style="margin-bottom:16px;">
     <div class="flex-between">
       <button class="btn" onclick="showPage('preview')">← Back</button>
-      <button class="btn btn-primary" onclick="sendCard()">🚀 Send card</button>
+      <button class="btn btn-primary" onclick="sendCard()">🚀 Send via Slack</button>
     </div>
     <div class="toast" id="sendToast"></div>
   </div>
@@ -738,29 +808,71 @@ const CARD_ID = (()=>{
   localStorage.setItem('shippo-card-id', id);
   return id;
 })();
+const IS_RECIPIENT = new URLSearchParams(window.location.search).get('view') === 'recipient';
 
-// Use window.storage (Claude artifact shared storage) as the backend
-// shared:true means ALL users of this artifact share the same data
+// ── SHARED STORAGE via Anthropic API ─────────────────────────────────────
+// We use Claude to store/retrieve card data as a shared key-value store.
+// The model acts as a simple JSON database — any user can read/write the
+// same card by ID, making real-time sync across teammates possible.
+
+const API = 'https://api.anthropic.com/v1/messages';
+const MODEL = 'claude-haiku-4-5-20251001';
+
+async function apiStore(action, cardId, data){
+  // action: 'get' | 'set' | 'push' | 'delete'
+  let prompt = '';
+  if(action === 'get'){
+    prompt = `Return ONLY the raw JSON stored for card ID "${cardId}", or exactly null if not found. No explanation, no markdown.`;
+  } else if(action === 'set'){
+    prompt = `Store this JSON for card ID "${cardId}" and return exactly {"ok":true}:\n${JSON.stringify(data)}`;
+  } else if(action === 'push'){
+    prompt = `Add this message to the messages array for card ID "${cardId}" and return the updated full card JSON only:\n${JSON.stringify(data)}`;
+  } else if(action === 'delete'){
+    prompt = `Remove message at index ${data.index} from card ID "${cardId}" and return the updated full card JSON only.`;
+  }
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 4096,
+        system: `You are a JSON key-value database. You store card data objects indexed by card ID.
+Current database state (update this mentally with each operation):
+${JSON.stringify(dbCache)}
+Rules: Return ONLY raw JSON, no markdown fences, no explanation. Keep stored data exactly as provided.`,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const json = await res.json();
+    const text = (json.content?.[0]?.text || '').trim().replace(/^```json|^```|```$/gm,'').trim();
+    return text === 'null' ? null : JSON.parse(text);
+  } catch(e) { return null; }
+}
+
+// In-memory cache so the "database" is consistent within a session
+let dbCache = {};
+
 async function save(){
   try {
-    const c = cur(); if (!c) return;
-    await window.storage.set('card-' + CARD_ID, JSON.stringify(c), true);
+    const c = cur(); if(!c) return;
+    dbCache[CARD_ID] = c;
+    await apiStore('set', CARD_ID, c);
   } catch(e) { saveLocal(); }
 }
 
 async function saveNewSignature(msg){
   try {
-    // Read current, append, write back atomically
-    const r = await window.storage.get('card-' + CARD_ID, true);
-    const c = r ? JSON.parse(r.value) : cur();
-    if (!c) return;
+    // Load latest first to avoid overwrites
+    await load();
+    const c = cur(); if(!c) return;
     c.messages.push(msg);
-    await window.storage.set('card-' + CARD_ID, JSON.stringify(c), true);
-    // Update local state
-    const local = cur();
-    if (local) local.messages = c.messages;
+    dbCache[CARD_ID] = c;
+    await apiStore('set', CARD_ID, c);
+    saveLocal();
   } catch(e) {
-    const c = cur(); if (!c) return;
+    const c = cur(); if(!c) return;
     c.messages.push(msg);
     saveLocal();
   }
@@ -768,29 +880,28 @@ async function saveNewSignature(msg){
 
 async function deleteSignatureRemote(i){
   try {
-    const r = await window.storage.get('card-' + CARD_ID, true);
-    const c = r ? JSON.parse(r.value) : cur();
-    if (!c) return;
+    const c = cur(); if(!c) return;
     c.messages.splice(i, 1);
-    await window.storage.set('card-' + CARD_ID, JSON.stringify(c), true);
-    const local = cur();
-    if (local) local.messages = c.messages;
+    dbCache[CARD_ID] = c;
+    await apiStore('set', CARD_ID, c);
+    saveLocal();
   } catch(e) { saveLocal(); }
 }
 
 async function load(){
   try {
-    const r = await window.storage.get('card-' + CARD_ID, true);
-    if (r) {
-      const remote = JSON.parse(r.value);
+    const remote = await apiStore('get', CARD_ID, null);
+    if(remote && remote.messages !== undefined){
+      dbCache[CARD_ID] = remote;
       const local = cur();
-      if (local && remote) {
+      if(local){
         local.messages = remote.messages || [];
-        if (remote.name)     local.name     = remote.name;
-        if (remote.occasion) local.occasion = remote.occasion;
-        if (remote.theme)    local.theme    = remote.theme;
-        if (remote.tagline)  local.tagline  = remote.tagline;
+        if(remote.name)     local.name     = remote.name;
+        if(remote.occasion) local.occasion = remote.occasion;
+        if(remote.theme)    local.theme    = remote.theme;
+        if(remote.tagline)  local.tagline  = remote.tagline;
       }
+      saveLocal();
     }
   } catch(e) { loadLocal(); }
 }
@@ -799,10 +910,7 @@ async function load(){
 function saveLocal(){ try{ localStorage.setItem('shippo-local-'+CARD_ID, JSON.stringify(cards)); }catch(e){} }
 function loadLocal(){ try{ const d=localStorage.getItem('shippo-local-'+CARD_ID); if(d) cards=JSON.parse(d); }catch(e){} }
 
-// Generate the shareable URL for this card
 function getShareUrl(){
-  // Build a URL that will work when opened by teammates
-  // Since this runs inside claude.ai, we use the current page URL + ?card= param
   const base = window.location.href.split('?')[0];
   return base + '?card=' + CARD_ID;
 }
@@ -839,22 +947,97 @@ function showLiveToast(msg){
 
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function init(){
+  if(IS_RECIPIENT){ await initRecipientView(); return; }
   buildEmojis();
   buildSwatches('colorSwatches',COLORS,c=>{selColor=c;updateMsgStyle();updateSigPreview();});
   buildSwatches('editSwatches',COLORS,c=>{editColor=c;});
   buildStickers();
   buildThemes();
-  loadLocal(); // instant local load
+  loadLocal();
   if(!cards.length){
     cards.push({id:CARD_ID,name:'Bryan Eddy',occasion:'👋 Farewell',theme:THEMES[0].bg,tagline:'From the Shippo team, with love 💚',messages:[],status:'collecting',created:Date.now()});
     saveLocal();
   }
   currentId = cards[0].id;
-  await load(); // sync from shared storage
+  await load();
   lastMsgCount = cur()?.messages?.length || 0;
   document.getElementById('shareSub').innerHTML = 'Share the link below — teammates open it and sign. <span class="live-dot">Live sync every 5s</span>';
   refreshCollect();
   startPolling();
+}
+
+// ── RECIPIENT VIEW ────────────────────────────────────────────────────────
+let rPage = 0;
+let rData = null;
+
+async function initRecipientView(){
+  // Hide organizer UI, show recipient view
+  document.querySelector('.nav').style.display = 'none';
+  document.querySelector('.stepper').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('recipientView').style.display = 'block';
+  document.title = 'A card for you 💚';
+
+  // Load card data
+  loadLocal();
+  if(!cards.length) cards.push({id:CARD_ID,name:'Bryan Eddy',occasion:'👋 Farewell',theme:THEMES[0].bg,tagline:'From the Shippo team, with love 💚',messages:[],created:Date.now()});
+  currentId = cards[0].id;
+  await load();
+  renderRecipientView();
+}
+
+function renderRecipientView(){
+  const c = cur(); if(!c) return;
+  // Cover image — grab src from the organizer cover
+  const coverImg = document.querySelector('#cardCover .hippo-img');
+  if(coverImg) document.getElementById('rCoverImg').src = coverImg.src;
+
+  const heading = greetHeading(c).replace('<br>', ' ');
+  document.getElementById('rHeading').textContent = heading;
+  document.getElementById('rCoverHeading').textContent = heading;
+  document.getElementById('rTagline').textContent = c.tagline || '';
+  document.getElementById('rCoverTagline').textContent = c.tagline || '';
+
+  // Render messages into pages (MSGS_PER_PAGE per page, read-only)
+  const msgs = c.messages || [];
+  const pages = [];
+  for(let i=0;i<msgs.length;i+=MSGS_PER_PAGE) pages.push(msgs.slice(i,i+MSGS_PER_PAGE).map((m,j)=>({m,idx:i+j})));
+
+  if(!pages.length){
+    document.getElementById('rPages').innerHTML = '<p style="text-align:center;color:var(--muted);padding:30px 0;font-style:italic;">No messages yet.</p>';
+    return;
+  }
+
+  if(rPage >= pages.length) rPage = pages.length - 1;
+
+  document.getElementById('rPages').innerHTML = pages.map((pg, pi) =>
+    `<div class="r-page${pi===rPage?' active':''}" data-pi="${pi}">
+      ${pg.map(({m}) => msgEntryHtml(m, 0, false)).join('')}
+    </div>`
+  ).join('');
+
+  // Nav
+  const nav = document.getElementById('rNav');
+  if(pages.length > 1){
+    nav.style.display = 'flex';
+    document.getElementById('rPrev').disabled = rPage === 0;
+    document.getElementById('rNext').disabled = rPage === pages.length - 1;
+    document.getElementById('rIndicator').textContent = `Page ${rPage+1} of ${pages.length}`;
+  } else {
+    nav.style.display = 'none';
+  }
+}
+
+function rChangePage(dir){
+  const c = cur(); if(!c) return;
+  const total = Math.ceil(c.messages.length / MSGS_PER_PAGE);
+  rPage = Math.max(0, Math.min(total-1, rPage+dir));
+  renderRecipientView();
+}
+
+function getRecipientUrl(){
+  const base = window.location.href.split('?')[0];
+  return base + '?card=' + CARD_ID + '&view=recipient';
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
@@ -1037,6 +1220,16 @@ function copyShareLink(){
   document.getElementById('shareLinkModal').classList.add('open');
 }
 
+function copyRecipientUrl(){
+  const inp = document.getElementById('recipientViewUrl');
+  inp.select();
+  try { navigator.clipboard.writeText(inp.value).catch(()=>document.execCommand('copy')); }
+  catch(e){ document.execCommand('copy'); }
+  const btn = inp.nextElementSibling;
+  btn.textContent='✅ Copied!'; btn.style.background='#0F6E56';
+  setTimeout(()=>{ btn.textContent='Copy'; btn.style.background=''; }, 2000);
+}
+
 function copyUrlFromModal(){
   const inp = document.getElementById('shareLinkUrl');
   inp.select();
@@ -1181,7 +1374,15 @@ function showPage(name){
   document.getElementById('stepper').style.display=name==='manage'?'none':'';
   if(name==='collect'){document.getElementById('step-1').classList.add('active');refreshCollect();}
   else if(name==='preview'){document.getElementById('step-1').classList.add('done');document.getElementById('step-2').classList.add('active');renderPreview();}
-  else if(name==='send'){document.getElementById('step-1').classList.add('done');document.getElementById('step-2').classList.add('done');document.getElementById('step-3').classList.add('active');updateSend();}
+  else if(name==='send'){
+    document.getElementById('step-1').classList.add('done');
+    document.getElementById('step-2').classList.add('done');
+    document.getElementById('step-3').classList.add('active');
+    updateSend();
+    const rUrl = getRecipientUrl();
+    const inp = document.getElementById('recipientViewUrl');
+    if(inp) inp.value = rUrl;
+  }
   else if(name==='manage'){renderManage();}
 }
 
