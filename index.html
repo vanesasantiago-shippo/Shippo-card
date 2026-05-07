@@ -367,10 +367,10 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
 .r-heading{font-family:'Playfair Display',serif;font-size:34px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:6px;}
 .r-tagline{font-size:14px;color:rgba(255,255,255,.65);}
 .r-card{width:100%;max-width:680px;background:#fffef8;border-radius:16px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.4);animation:fadeUp .7s .1s ease both;}
-.r-cover{aspect-ratio:16/9;position:relative;overflow:hidden;}
-.r-cover img{width:100%;height:100%;object-fit:cover;object-position:center center;display:block;}
-.r-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,transparent 100%);}
-.r-cover-text{position:absolute;bottom:22px;left:24px;right:24px;z-index:2;}
+.r-cover{position:relative;overflow:hidden;background:#7ec8a0;}
+.r-cover img{width:100%;height:auto;display:block;object-fit:contain;}
+.r-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 100%);}
+.r-cover-text{position:absolute;bottom:18px;left:24px;right:24px;z-index:2;}
 .r-cover-text h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;color:#fff;line-height:1.2;margin-bottom:3px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
 .r-cover-text p{font-size:12px;color:rgba(255,255,255,.75);}
 .r-inside{padding:24px 24px 20px;background:#fffef8;}
@@ -844,9 +844,8 @@ async function save(){
   if (!SCRIPT_URL) { saveLocal(); return; }
   try {
     const c = cur(); if(!c) return;
-    await gPost({ action: 'saveMeta', cardId: CARD_ID, cardMeta: {
-      name: c.name, occasion: c.occasion, theme: c.theme, tagline: c.tagline
-    }});
+    const meta = { name: c.name, occasion: c.occasion, theme: c.theme, tagline: c.tagline };
+    await gCall({ action: 'saveMeta', cardId: CARD_ID, cardMeta: JSON.stringify(meta) });
     saveLocal();
   } catch(e) { saveLocal(); }
 }
@@ -859,7 +858,7 @@ async function saveNewSignature(msg){
     return;
   }
   try {
-    await gPost({ action: 'add', cardId: CARD_ID, message: msg });
+    await gCall({ action: 'add', cardId: CARD_ID, message: JSON.stringify(msg) });
     await load();
   } catch(e) {
     const c = cur(); if(!c) return;
@@ -871,7 +870,7 @@ async function saveNewSignature(msg){
 async function deleteSignatureRemote(i){
   if (!SCRIPT_URL) { saveLocal(); return; }
   try {
-    await gPost({ action: 'delete', cardId: CARD_ID, index: i });
+    await gCall({ action: 'delete', cardId: CARD_ID, index: i });
   } catch(e) {}
   await load();
 }
@@ -880,7 +879,7 @@ async function load(){
   if (!SCRIPT_URL) { loadLocal(); return; }
   try {
     const url = `${SCRIPT_URL}?action=get&cardId=${encodeURIComponent(CARD_ID)}`;
-    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    const res = await fetch(url, { redirect: 'follow' });
     const text = await res.text();
     const data = JSON.parse(text);
     const c = cur();
@@ -897,15 +896,12 @@ async function load(){
   } catch(e) { loadLocal(); }
 }
 
-// POST helper — use no-cors mode with form data for Apps Script
-async function gPost(data){
-  // Apps Script requires form-encoded POST or URL params
-  const params = new URLSearchParams({ payload: JSON.stringify(data) });
-  await fetch(SCRIPT_URL, {
-    method: 'POST',
-    body: params,
-    redirect: 'follow'
-  });
+// Use GET with URL params — most reliable with Apps Script redirects
+async function gCall(params){
+  const url = SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url, { redirect: 'follow' });
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return {}; }
 }
 
 // Local fallback
