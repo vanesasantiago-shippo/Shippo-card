@@ -395,7 +395,6 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
     <div class="r-intro">
       <div class="r-from">From the Shippo team</div>
       <div class="r-heading" id="rHeading">Goodbye, Bryan Eddy!</div>
-      <div class="r-tagline" id="rTagline">From the Shippo team, with love 💚</div>
     </div>
     <div class="r-card">
       <div class="r-cover">
@@ -842,7 +841,13 @@ const IS_RECIPIENT = new URLSearchParams(window.location.search).get('view') ===
 const _urlParams = new URLSearchParams(window.location.search);
 const _scriptFromUrl = _urlParams.get('api');
 if (_scriptFromUrl) localStorage.setItem('shippo-script-url', decodeURIComponent(_scriptFromUrl));
-const SCRIPT_URL = localStorage.getItem('shippo-script-url') || '';
+const SCRIPT_URL = (() => {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('api')) {
+    localStorage.setItem('shippo-script-url', decodeURIComponent(p.get('api')));
+  }
+  return localStorage.getItem('shippo-script-url') || '';
+})();
 
 async function save(){
   if (!SCRIPT_URL) { saveLocal(); return; }
