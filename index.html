@@ -962,8 +962,11 @@ async function init(){
   if (!SCRIPT_URL) {
     document.getElementById('shareSub').innerHTML = '⚠️ <a href="#" onclick="showScriptSetup();return false;" style="color:var(--green)">Connect Google Sheet</a> to enable real-time sync';
     document.getElementById('copyBtn').textContent = '⚙️ Set up';
+    document.getElementById('copyBtn').setAttribute('onclick', 'showScriptSetup()');
   } else {
     document.getElementById('shareSub').innerHTML = 'Share the link — teammates open it and sign. <span class="live-dot">Live sync every 5s</span>';
+    document.getElementById('copyBtn').textContent = '🔗 Get share link';
+    document.getElementById('copyBtn').setAttribute('onclick', 'copyShareLink()');
   }
   refreshCollect();
   startPolling();
