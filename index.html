@@ -838,6 +838,10 @@ const IS_RECIPIENT = new URLSearchParams(window.location.search).get('view') ===
 
 // ── SHARED STORAGE via Google Apps Script ────────────────────────────────
 // Set this to your deployed Apps Script Web App URL after deploying
+// Read script URL from URL param first, then localStorage
+const _urlParams = new URLSearchParams(window.location.search);
+const _scriptFromUrl = _urlParams.get('api');
+if (_scriptFromUrl) localStorage.setItem('shippo-script-url', decodeURIComponent(_scriptFromUrl));
 const SCRIPT_URL = localStorage.getItem('shippo-script-url') || '';
 
 async function save(){
@@ -912,7 +916,8 @@ function getShareUrl(){
   const base = window.location.href.includes('github.io')
     ? window.location.href.split('?')[0]
     : 'https://vanesasantiago-shippo.github.io/Shippo-card/';
-  return base + '?card=' + CARD_ID;
+  const api = SCRIPT_URL ? '&api=' + encodeURIComponent(SCRIPT_URL) : '';
+  return base + '?card=' + CARD_ID + api;
 }
 
 // Poll every 5 seconds for new signatures
@@ -1047,7 +1052,8 @@ function getRecipientUrl(){
   const base = window.location.href.includes('github.io')
     ? window.location.href.split('?')[0]
     : 'https://vanesasantiago-shippo.github.io/Shippo-card/';
-  return base + '?card=' + CARD_ID + '&view=recipient';
+  const api = SCRIPT_URL ? '&api=' + encodeURIComponent(SCRIPT_URL) : '';
+  return base + '?card=' + CARD_ID + api + '&view=recipient';
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
