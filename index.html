@@ -385,6 +385,26 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
 .r-footer{text-align:center;padding:16px;border-top:1px solid var(--border);background:#f5f0e8;}
 .r-footer p{font-size:11px;color:var(--muted);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+/* ── SIGNER VIEW ──────────────────────────────────── */
+.signer-view{max-width:780px;margin:0 auto;padding:24px 20px 60px;}
+.signer-header{text-align:center;margin-bottom:24px;}
+.signer-header h2{font-family:'Playfair Display',serif;font-size:22px;color:var(--text);margin-bottom:6px;}
+.signer-header p{font-size:13px;color:var(--muted);}
+.signer-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:24px;}
+.signer-cover{position:relative;overflow:hidden;}
+.signer-cover img{width:100%;height:auto;display:block;}
+.signer-cover::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(0,0,0,.65),transparent);}
+.signer-cover-text{position:absolute;bottom:18px;left:20px;right:20px;z-index:2;}
+.signer-cover-text h1{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4);}
+.signer-cover-text p{font-size:12px;color:rgba(255,255,255,.8);}
+.signer-messages{padding:20px;}
+.signer-messages-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--muted);font-style:italic;margin-bottom:16px;text-align:center;}
+.signer-form{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;}
+.signer-form h3{font-size:15px;font-weight:600;margin-bottom:16px;color:var(--text);}
+.signer-success{text-align:center;padding:30px 20px;color:var(--green);}
+.signer-success .s-icon{font-size:48px;margin-bottom:12px;}
+.signer-success h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:8px;}
+.signer-success p{font-size:13px;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -421,6 +441,73 @@ select.fpick{font-size:13px;padding:5px 8px;border:1px solid var(--border);borde
 </div>
 
 <!-- NAV -->
+<!-- SIGNER VIEW (teammates signing the card) -->
+<div id="signerView" style="display:none;">
+  <div class="signer-view">
+    <div class="signer-header">
+      <h2>✍️ Sign the card for <span id="signerCardName">Bryan Eddy</span></h2>
+      <p>Add your message below — it will appear in Bryan's card.</p>
+    </div>
+    <div class="signer-card">
+      <div class="signer-cover">
+        <img id="signerCoverImg" src="" alt="Card cover">
+        <div class="signer-cover-text">
+          <h1 id="signerCoverHeading">Goodbye, Bryan Eddy!</h1>
+          <p id="signerCoverTagline">From the Shippo team, with love 💚</p>
+        </div>
+      </div>
+      <div class="signer-messages">
+        <div class="signer-messages-title">Messages from the team so far</div>
+        <div id="signerMsgList"></div>
+      </div>
+    </div>
+    <!-- Sign form -->
+    <div class="signer-form" id="signerFormArea">
+      <h3>Add your message 💚</h3>
+      <div class="sign-controls">
+        <div class="ctrl-grp">
+          <label>Message font</label>
+          <select class="fpick" id="signerFontPick" onchange="updateSignerStyle()">
+            <option value="DM Sans,sans-serif">Default</option>
+            <option value="Playfair Display,serif">Playfair</option>
+            <option value="Dancing Script,cursive">Handwritten</option>
+            <option value="Space Mono,monospace">Mono</option>
+            <option value="Pacifico,cursive">Pacifico</option>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <label>Color</label>
+          <div class="swatches" id="signerSwatches"></div>
+        </div>
+      </div>
+      <textarea class="msg-ta" id="signerMsgText" rows="4" placeholder="Write your message…"></textarea>
+      <div class="sign-row" style="margin-top:12px;">
+        <input class="name-input" id="signerNameInput" type="text" placeholder="Your name" oninput="updateSignerSigPreview()">
+        <div class="ctrl-grp">
+          <label style="font-size:12px;color:var(--muted);font-weight:500;">Sig font</label>
+          <select class="fpick" id="signerSigFontPick" onchange="updateSignerSigPreview()">
+            <option value="Dancing Script,cursive">Handwritten</option>
+            <option value="Pacifico,cursive">Pacifico</option>
+            <option value="Playfair Display,serif">Playfair</option>
+            <option value="DM Sans,sans-serif">Default</option>
+            <option value="Space Mono,monospace">Mono</option>
+          </select>
+        </div>
+        <div class="ctrl-grp">
+          <label style="font-size:12px;color:var(--muted);font-weight:500;">Position</label>
+          <div class="sig-pos-btns" id="signerPosBtns">
+            <button type="button" class="sig-pos active" data-pos="left"   onclick="pickSignerPos('left',this)">◀</button>
+            <button type="button" class="sig-pos"        data-pos="center" onclick="pickSignerPos('center',this)">■</button>
+            <button type="button" class="sig-pos"        data-pos="right"  onclick="pickSignerPos('right',this)">▶</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="submitSignerMsg()">✍️ Sign card</button>
+      </div>
+      <div id="signerSigPreview" style="padding:6px 2px 0;font-size:17px;min-height:26px;"></div>
+    </div>
+  </div>
+</div>
+
 <nav class="nav">
   <span class="nav-logo">Ship<span>po</span></span>
   <span class="nav-badge">Group Cards</span>
@@ -834,6 +921,7 @@ const CARD_ID = (()=>{
   return id;
 })();
 const IS_RECIPIENT = new URLSearchParams(window.location.search).get('view') === 'recipient';
+const IS_SIGNER = !!new URLSearchParams(window.location.search).get('card') && !IS_RECIPIENT;
 
 // ── SHARED STORAGE via Google Apps Script ────────────────────────────────
 // Set this to your deployed Apps Script Web App URL after deploying
@@ -937,7 +1025,9 @@ function startPolling(){
     const after = cur()?.messages?.length || 0;
     if (after !== lastMsgCount) {
       lastMsgCount = after;
-      refreshCollect();
+      if(IS_SIGNER){ renderSignerMessages(); }
+      else if(IS_RECIPIENT){ renderRecipientView(); }
+      else { refreshCollect(); }
       if (after > before) showLiveToast(`✍️ New signature! (${after} total)`);
     }
   }, 5000);
@@ -958,6 +1048,7 @@ function showLiveToast(msg){
 // ── INIT ──────────────────────────────────────────────────────────────────
 async function init(){
   if(IS_RECIPIENT){ await initRecipientView(); return; }
+  if(IS_SIGNER){ await initSignerView(); return; }
   buildEmojis();
   buildSwatches('colorSwatches',COLORS,c=>{selColor=c;updateMsgStyle();updateSigPreview();});
   buildSwatches('editSwatches',COLORS,c=>{editColor=c;});
@@ -982,6 +1073,96 @@ async function init(){
   }
   refreshCollect();
   startPolling();
+}
+
+// ── SIGNER VIEW ───────────────────────────────────────────────────────────
+let signerColor = '#1a1a1a';
+let signerPos = 'left';
+
+async function initSignerView(){
+  document.querySelector('.nav').style.display = 'none';
+  document.querySelector('.stepper') && (document.querySelector('.stepper').style.display = 'none');
+  document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+  document.getElementById('signerView').style.display = 'block';
+  document.title = 'Sign the card 💚';
+
+  loadLocal();
+  if(!cards.length) cards.push({id:CARD_ID,name:'Bryan Eddy',occasion:'👋 Farewell',theme:THEMES[0].bg,tagline:'From the Shippo team, with love 💚',messages:[],created:Date.now()});
+  currentId = cards[0].id;
+  await load();
+
+  buildSwatches('signerSwatches', COLORS, c=>{ signerColor=c; updateSignerStyle(); updateSignerSigPreview(); });
+
+  const c = cur(); if(!c) return;
+  const coverImg = document.querySelector('.hippo-img');
+  if(coverImg) document.getElementById('signerCoverImg').src = coverImg.src;
+  document.getElementById('signerCardName').textContent = c.name || 'Bryan Eddy';
+  document.getElementById('signerCoverHeading').textContent = greetHeading(c).replace('<br>',' ');
+  document.getElementById('signerCoverTagline').textContent = c.tagline || '';
+  renderSignerMessages();
+  startPolling();
+}
+
+function renderSignerMessages(){
+  const c = cur(); if(!c) return;
+  const msgs = c.messages || [];
+  const list = document.getElementById('signerMsgList');
+  if(!msgs.length){
+    list.innerHTML = '<p style="text-align:center;color:var(--muted);font-size:13px;font-style:italic;padding:10px 0;">Be the first to sign!</p>';
+    return;
+  }
+  list.innerHTML = msgs.map(m => {
+    const sigFont = m.sigFont || 'Dancing Script,cursive';
+    const sigPos = m.sigPos || 'left';
+    return `<div class="msg-entry">
+      <div class="msg-text" style="font-family:${m.font};color:${m.color};">${esc(m.text)}</div>
+      <div class="msg-sig" style="font-family:${sigFont};color:${m.color};text-align:${sigPos};">— ${esc(m.signer)}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateSignerStyle(){
+  const ta = document.getElementById('signerMsgText');
+  ta.style.fontFamily = document.getElementById('signerFontPick').value;
+  ta.style.color = signerColor;
+}
+
+function updateSignerSigPreview(){
+  const name = document.getElementById('signerNameInput').value.trim();
+  const font = document.getElementById('signerSigFontPick').value;
+  const prev = document.getElementById('signerSigPreview');
+  const alignMap = {left:'left',center:'center',right:'right'};
+  prev.style.textAlign = alignMap[signerPos]||'left';
+  if(name){ prev.style.fontFamily=font; prev.style.color=signerColor; prev.textContent='— '+name; }
+  else { prev.textContent=''; }
+}
+
+function pickSignerPos(pos, el){
+  signerPos = pos;
+  document.querySelectorAll('#signerPosBtns .sig-pos').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  updateSignerSigPreview();
+}
+
+async function submitSignerMsg(){
+  const text = document.getElementById('signerMsgText').value.trim();
+  const signer = document.getElementById('signerNameInput').value.trim();
+  const font = document.getElementById('signerFontPick').value;
+  const sigFont = document.getElementById('signerSigFontPick').value;
+  if(!text||!signer){ alert('Please enter your name and a message.'); return; }
+
+  const msg = {text,signer,font,sigFont,sigPos:signerPos,color:signerColor,ts:Date.now()};
+  await saveNewSignature(msg);
+  await load();
+  renderSignerMessages();
+
+  // Show success state
+  document.getElementById('signerFormArea').innerHTML = `
+    <div class="signer-success">
+      <div class="s-icon">🎉</div>
+      <h3>You're signed!</h3>
+      <p>Your message has been added to the card.<br>Bryan will love it 💚</p>
+    </div>`;
 }
 
 // ── RECIPIENT VIEW ────────────────────────────────────────────────────────
