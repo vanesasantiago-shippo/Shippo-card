@@ -1042,9 +1042,12 @@ else if (IS_RECIPIENT) {
 }
 else {
 // Show loading state then load live data
-document.getElementById('stat-total').textContent = '...';
-document.getElementById('stat-30').textContent = '...';
-document.getElementById('cardsGrid').innerHTML = '<div class="empty-state"><div class="e-icon">⏳</div><p>Loading employees from sheet...</p></div>';
+const _statTotal = document.getElementById('stat-total');
+const _statThirty = document.getElementById('stat-30');
+const _cardsGrid = document.getElementById('cardsGrid');
+if(_statTotal) _statTotal.textContent = '...';
+if(_statThirty) _statThirty.textContent = '...';
+if(_cardsGrid) _cardsGrid.innerHTML = '<div class="empty-state"><div class="e-icon">⏳</div><p>Loading employees from sheet...</p></div>';
 loadEmployees();
 }
 </script>
