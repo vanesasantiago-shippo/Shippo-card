@@ -915,16 +915,18 @@ function setSignerSticker(emoji, el) {
   }
 }
 
+let _signerSubmitting = false;
 async function submitSignerMsg() {
+  if(_signerSubmitting) return; // hard block double submit
+  _signerSubmitting = true;
+  
   const text = document.getElementById('signerMsgText').value.trim();
   const signer = document.getElementById('signerNameInput').value.trim();
   const font = document.getElementById('signerFontPick').value;
-  if (!text || !signer) { alert('Please enter your name and a message.'); return; }
+  if (!text || !signer) { _signerSubmitting = false; alert('Please enter your name and a message.'); return; }
   
   const btn = document.getElementById('signerSubmitBtn');
-  btn.textContent = '⏳ Signing...';
-  btn.disabled = true;
-  btn.style.opacity = '0.7';
+  if(btn) { btn.textContent = '⏳ Signing...'; btn.disabled = true; btn.style.opacity = '0.7'; btn.style.pointerEvents = 'none'; }
   
   const msg = { 
     text, signer, font, 
