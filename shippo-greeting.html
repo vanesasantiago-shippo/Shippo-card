@@ -668,11 +668,25 @@ async function loadEmployees() {
     const text = await res.text();
     const data = JSON.parse(text);
     if (data.employees && data.employees.length > 0) {
+      // Normalize start dates - sheet returns full date strings, convert to MM/DD/YYYY
+      const normalized = data.employees
+        .filter(e => e.name && e.start)
+        .map(e => {
+          let start = e.start;
+          // If it's a full date string like "Mon Jul 07 2025 08:00:00..."
+          if (start.length > 10) {
+            const d = new Date(start);
+            if (!isNaN(d)) {
+              start = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+            }
+          }
+          return { name: e.name, manager: e.manager || '', start };
+        });
       EMPLOYEES.length = 0;
-      data.employees.forEach(e => EMPLOYEES.push(e));
+      normalized.forEach(e => EMPLOYEES.push(e));
       console.log('Loaded ' + EMPLOYEES.length + ' employees from sheet');
     } else {
-      console.log('No employees returned:', data);
+      console.log('No employees returned:', JSON.stringify(data).slice(0,200));
     }
   } catch(e) {
     console.log('Load error:', e.message);
