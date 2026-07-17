@@ -752,21 +752,35 @@ async function deleteMessage(idx, btn) {
   }
 }
 
-async function submitSign() {
+async function submitSign(btn) {
   const text = document.getElementById('msgText').value.trim();
   const signer = document.getElementById('orgSignerName').value.trim();
   const font = document.getElementById('fontPick').value;
-  if(!text || !signer) { alert('Please enter your name and a message.'); return; }
+  
+  if(!text || !signer) { 
+    // Reset button if validation fails
+    if(btn) { btn.textContent='Sign this card'; btn.disabled=false; btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
+    alert('Please enter your name and a message.'); 
+    return; 
+  }
+  
   const msg = {text, signer, font, sigFont:'Dancing Script,cursive', sigPos:'right', color: orgColor || '#1a1a1a', sticker: orgSticker ? {e: orgSticker} : null, ts:Date.now()};
-  try {
-    const url = `${SCRIPT_URL}?action=add&cardId=${encodeURIComponent(currentCardId)}&message=${encodeURIComponent(JSON.stringify(msg))}`;
-    await fetch(url, {redirect:'follow'});
-    document.getElementById('msgText').value = '';
-    document.getElementById('signerName').value = '';
-    document.getElementById('sigPreview').textContent = '';
-    await loadMessages();
-    showToast('✍️ Message added!');
-  } catch(e) { alert('Error saving message. Please try again.'); }
+  
+  // Optimistic UI - show message instantly
+  currentMessages.push(msg);
+  renderMessages();
+  
+  // Reset form and button IMMEDIATELY
+  document.getElementById('msgText').value = '';
+  document.getElementById('orgSignerName').value = '';
+  const sp = document.getElementById('sigPreview');
+  if(sp) sp.textContent = '';
+  if(btn) { btn.textContent='Sign this card'; btn.disabled=false; btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
+  showToast('Message added!');
+  
+  // Save in background - fire and forget
+  const url = SCRIPT_URL + '?action=add&cardId=' + encodeURIComponent(currentCardId) + '&message=' + encodeURIComponent(JSON.stringify(msg));
+  fetch(url, {redirect:'follow'}).catch(e => console.log('Save error:', e));
 }
 
 function updateSigPreview() {
