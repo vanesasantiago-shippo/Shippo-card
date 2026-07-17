@@ -597,9 +597,10 @@ function setOrgSticker(emoji, el) {
 // ── CONFIG ────────────────────────────────────────────────────────────────
 // Read api from URL param if present
 const _urlP = new URLSearchParams(window.location.search);
-if (_urlP.get('api')) localStorage.setItem('shippo-script-url', decodeURIComponent(_urlP.get('api')));
-const SCRIPT_URL = localStorage.getItem('shippo-script-url') || 
-  'https://script.google.com/macros/s/AKfycbw55ofxhe4lh4R2JhKrKKXAH496kkl_qyWCy-ZsvVn7oYO333237G6ixPilyF3FRPlx/exec';
+const CORRECT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw55ofxhe4lh4R2JhKrKKXAH496kkl_qyWCy-ZsvVn7oYO333237G6ixPilyF3FRPlx/exec';
+// Always use the correct script URL regardless of what's in the URL param
+const SCRIPT_URL = CORRECT_SCRIPT_URL;
+localStorage.setItem('shippo-script-url', CORRECT_SCRIPT_URL);
 const BASE_URL = 'https://vanesasantiago-shippo.github.io/Shippo-card/shippo-greeting.html';
 const _cardParam = _urlP.get('card');
 const _viewParam = _urlP.get('view');
