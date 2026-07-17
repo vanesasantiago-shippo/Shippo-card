@@ -998,8 +998,10 @@ async function initRecipientView() {
   
   // Just show milestone in the cover footer, name only in messages intro
   const firstName = name ? name.split(' ')[0] : '';
-  document.getElementById('recipientYears').textContent = years ? ordinal(parseInt(years)) + ' Shippoversary' : 'Happy Shippoversary';
-  if(firstName) document.getElementById('recipientMsgTitle').textContent = firstName + ', here\'s what your team wanted to say...';
+  const recYears = document.getElementById('recipientYears');
+  if(recYears) recYears.textContent = years ? ordinal(parseInt(years)) + ' Shippoversary' : 'Happy Shippoversary';
+  const msgTitle = document.getElementById('recipientMsgTitle');
+  if(msgTitle && firstName) msgTitle.textContent = firstName + ', here\'s what your team wanted to say...';
   
   try {
     const url = SCRIPT_URL + '?action=get&cardId=' + encodeURIComponent(_cardParam);
