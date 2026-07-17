@@ -663,17 +663,19 @@ function refreshDates() {
 // ── LOAD EMPLOYEES LIVE FROM GOOGLE SHEET ────────────────────
 async function loadEmployees() {
   try {
-    const url = `${SCRIPT_URL}?action=getEmployees`;
-    const res = await fetch(url, { redirect: 'follow' });
-    const data = await res.json();
+    const url = SCRIPT_URL + '?action=getEmployees';
+    const res = await fetch(url, { redirect: 'follow', cache: 'no-cache' });
+    const text = await res.text();
+    const data = JSON.parse(text);
     if (data.employees && data.employees.length > 0) {
-      // Replace hardcoded data with live data
       EMPLOYEES.length = 0;
       data.employees.forEach(e => EMPLOYEES.push(e));
-      console.log(`Loaded ${EMPLOYEES.length} employees from sheet`);
+      console.log('Loaded ' + EMPLOYEES.length + ' employees from sheet');
+    } else {
+      console.log('No employees returned:', data);
     }
   } catch(e) {
-    console.log('Could not load from sheet, using cached data:', e);
+    console.log('Load error:', e.message);
   }
   refreshDates();
   renderDashboard();
