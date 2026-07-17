@@ -535,7 +535,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <div class="sig-preview" id="sigPreview" style="color:var(--muted);"></div>
-      <button class="sign-submit" onclick="submitSign()">Sign this card</button>
+      <button class="sign-submit" id="orgSignBtn" onclick="this.textContent='⏳ Signing...';this.disabled=true;this.style.opacity='0.7';this.style.pointerEvents='none';submitSign(this);">Sign this card</button>
     </div>
   </div>
 </div>
@@ -671,8 +671,8 @@ function openCard(emp) {
 
 function showDashboard() {
   stopPoll();
-  sessionStorage.removeItem('currentCardId');
-  sessionStorage.removeItem('currentEmployeeName');
+  localStorage.removeItem('currentCardId');
+  localStorage.removeItem('currentEmployeeName');
   showView('view-dashboard');
 }
 
@@ -1073,7 +1073,7 @@ async function loadEmployees() {
   renderDashboard();
   
   // Restore manage view if saved in sessionStorage
-  const _savedName = sessionStorage.getItem('currentEmployeeName');
+  const _savedName = localStorage.getItem('currentEmployeeName');
   if (_savedName) {
     const emp = EMPLOYEES.find(e => e.name === _savedName);
     if (emp) openCard(emp);
