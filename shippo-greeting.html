@@ -866,6 +866,11 @@ async function initSignerView() {
   document.getElementById('signerYears').textContent = years ? ordinal(parseInt(years)) + ' Shippoversary' : 'Shippoversary';
   
   await loadSignerMessages();
+  
+  // Auto-refresh every 5 seconds
+  setInterval(async () => {
+    await loadSignerMessages();
+  }, 5000);
 }
 
 async function loadSignerMessages() {
@@ -1002,6 +1007,15 @@ async function initRecipientView() {
     const data = await res.json();
     renderRecipientMessages(data.messages || []);
   } catch(e) { console.log('Error loading:', e); }
+  
+  // Auto-refresh every 5 seconds
+  setInterval(async () => {
+    try {
+      const r2 = await fetch(SCRIPT_URL + '?action=get&cardId=' + encodeURIComponent(_cardParam), { redirect: 'follow' });
+      const d2 = await r2.json();
+      renderRecipientMessages(d2.messages || []);
+    } catch(e) {}
+  }, 5000);
 }
 
 function renderRecipientMessages(msgs) {
