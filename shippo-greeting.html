@@ -1033,19 +1033,26 @@ const MSGS_PER_PAGE = 3;
 async function initRecipientView() {
   document.querySelector('.nav').style.display = 'none';
   document.getElementById('recipientView').style.display = 'block';
-  document.title = 'A card for you 💚';
+  document.title = 'A card for you';
   
   const name = decodeURIComponent(_urlP.get('name') || '');
   const years = _urlP.get('years') || '';
-  const heading = name ? 'Happy ' + ordinal(parseInt(years)) + ' Shippoversary, ' + name + '!' : 'Happy Shippoversary!';
-  
-  // Just show milestone in the cover footer, name only in messages intro
   const firstName = name ? name.split(' ')[0] : '';
+
+  // Big ordinal number (1st, 2nd...) in h1
+  const recHeading = document.getElementById('recipientHeading');
+  if(recHeading) recHeading.textContent = years ? ordinal(parseInt(years)) : '';
+
+  // SHIPPOVERSARY in p
   const recYears = document.getElementById('recipientYears');
-  if(recYears) recYears.textContent = years ? ordinal(parseInt(years)) + ' Shippoversary' : 'Happy Shippoversary';
-  const msgTitle = document.getElementById('recipientMsgTitle');
-  if(msgTitle && firstName) msgTitle.textContent = firstName + ', here\'s what your team wanted to say...';
-  
+  if(recYears) recYears.textContent = 'Shippoversary';
+
+  // Personal message title with name
+  const recMsgTitle = document.getElementById('recipientMsgTitle');
+  if(recMsgTitle) recMsgTitle.textContent = firstName 
+    ? firstName + ', here\'s what your team has to say to you...' 
+    : 'Here\'s what the team has to say...';
+
   try {
     const url = SCRIPT_URL + '?action=get&cardId=' + encodeURIComponent(_cardParam);
     const res = await fetch(url, { redirect: 'follow' });
