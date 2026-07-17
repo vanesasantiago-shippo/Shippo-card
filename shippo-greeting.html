@@ -304,7 +304,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="signer-cover-years" id="signerYears">—</div>
     </div>
     <div class="signer-messages-box">
-      <div class="signer-messages-title">Messages from the team 💚</div>
+      <div class="signer-messages-title">Messages from the team</div>
       <div id="signerMsgList"><p style="color:var(--muted);font-size:13px;font-style:italic;">Be the first to sign!</p></div>
     </div>
     <div class="signer-form-box" id="signerFormBox">
@@ -355,7 +355,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
       </div>
       <div id="signerSigPreview" style="font-family:'Dancing Script',cursive;font-size:17px;color:var(--muted);min-height:24px;margin-bottom:8px;"></div>
-      <button id="signerSubmitBtn" onclick="submitSignerMsg()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign this card 💚</button>
+      <button id="signerSubmitBtn" onclick="submitSignerMsg()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign this card</button>
     </div>
   </div>
 </div>
@@ -376,7 +376,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <p id="recipientYears">—</p>
       </div>
       <div class="recipient-messages">
-        <div class="recipient-messages-title">Messages from the team 💚</div>
+        <div class="recipient-messages-title">Messages from the team</div>
         <div id="recipientPages"></div>
         <div class="r-nav" id="recipientNav" style="display:none;">
           <button class="r-nav-btn" id="rPrevBtn" onclick="rChangePage(-1)">‹</button>
@@ -384,7 +384,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <button class="r-nav-btn" id="rNextBtn" onclick="rChangePage(1)">›</button>
         </div>
       </div>
-      <div class="recipient-footer-bar"><p>Made with 💚 by the Shippo team · ShippoGreeting</p></div>
+      <div class="recipient-footer-bar"><p>Made with love by the Shippo team · ShippoGreeting</p></div>
     </div>
   </div>
 </div>
@@ -453,7 +453,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       <!-- Inside -->
       <div class="card-inside-panel">
-        <div class="inside-header">Messages from the team 💚</div>
+        <div class="inside-header">Messages from the team</div>
         <div class="messages-area" id="messagesArea">
           <div class="empty-inside">
             <span style="font-size:32px">✍️</span>
@@ -503,7 +503,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div class="form-field">
           <label>Font</label>
-          <select id="fontPick">
+          <select id="fontPick" onchange="updateSigPreview()">
             <option value="DM Sans,sans-serif">Default</option>
             <option value="Playfair Display,serif">Playfair</option>
             <option value="Dancing Script,cursive" selected>Handwritten</option>
@@ -511,8 +511,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </select>
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Color</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <div onclick="setOrgColor('#1a1a1a',this)" style="width:24px;height:24px;border-radius:50%;background:#1a1a1a;cursor:pointer;border:3px solid #1a1a1a;"></div>
+            <div onclick="setOrgColor('#1D9E75',this)" style="width:24px;height:24px;border-radius:50%;background:#1D9E75;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setOrgColor('#378ADD',this)" style="width:24px;height:24px;border-radius:50%;background:#378ADD;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setOrgColor('#7F77DD',this)" style="width:24px;height:24px;border-radius:50%;background:#7F77DD;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setOrgColor('#E67E22',this)" style="width:24px;height:24px;border-radius:50%;background:#E67E22;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setOrgColor('#E74C3C',this)" style="width:24px;height:24px;border-radius:50%;background:#E74C3C;cursor:pointer;border:2px solid transparent;"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Sticker (optional)</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <span onclick="setOrgSticker('🎉',this)" style="font-size:22px;cursor:pointer;opacity:.5;">🎉</span>
+            <span onclick="setOrgSticker('🚀',this)" style="font-size:22px;cursor:pointer;opacity:.5;">🚀</span>
+            <span onclick="setOrgSticker('⭐',this)" style="font-size:22px;cursor:pointer;opacity:.5;">⭐</span>
+            <span onclick="setOrgSticker('🎂',this)" style="font-size:22px;cursor:pointer;opacity:.5;">🎂</span>
+            <span onclick="setOrgSticker('🦛',this)" style="font-size:22px;cursor:pointer;opacity:.5;">🦛</span>
+          </div>
+        </div>
+      </div>
       <div class="sig-preview" id="sigPreview" style="color:var(--muted);"></div>
-      <button class="sign-submit" onclick="submitSign()">Sign this card 💚</button>
+      <button class="sign-submit" onclick="submitSign()">Sign this card</button>
     </div>
   </div>
 </div>
@@ -648,7 +671,8 @@ function openCard(emp) {
 
 function showDashboard() {
   stopPoll();
-  window.history.pushState({}, '', window.location.pathname);
+  sessionStorage.removeItem('currentCardId');
+  sessionStorage.removeItem('currentEmployeeName');
   showView('view-dashboard');
 }
 
@@ -921,7 +945,7 @@ async function submitSignerMsg() {
       </div>`;
     await loadSignerMessages();
   } catch(e) { 
-    btn.textContent = 'Sign this card 💚';
+    btn.textContent = 'Sign this card';
     btn.disabled = false;
     btn.style.opacity = '1';
     alert('Error saving. Please try again.'); 
@@ -1046,9 +1070,10 @@ async function loadEmployees() {
   refreshDates();
   renderDashboard();
   
-  // Restore manage view if ?manage= in URL
-  if (_manageParam && _manageName) {
-    const emp = EMPLOYEES.find(e => e.name === _manageName);
+  // Restore manage view if saved in sessionStorage
+  const _savedName = sessionStorage.getItem('currentEmployeeName');
+  if (_savedName) {
+    const emp = EMPLOYEES.find(e => e.name === _savedName);
     if (emp) openCard(emp);
   }
 }
