@@ -571,6 +571,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
+// ── ORG COLOR & STICKER (must be defined early) ───────────────
+let orgColor = '#1a1a1a';
+let orgSticker = null;
+
+function setOrgColor(color, el) {
+  orgColor = color;
+  document.querySelectorAll('[onclick^="setOrgColor"]').forEach(e => e.style.border = '2px solid transparent');
+  el.style.border = '3px solid ' + color;
+  const prev = document.getElementById('sigPreview');
+  if(prev) { prev.style.color = color; }
+  const msgTxt = document.getElementById('msgText');
+  if(msgTxt) msgTxt.style.color = color;
+}
+
+function setOrgSticker(emoji, el) {
+  if(orgSticker === emoji) {
+    orgSticker = null;
+    document.querySelectorAll('[onclick^="setOrgSticker"]').forEach(e => e.style.opacity = '.5');
+  } else {
+    orgSticker = emoji;
+    document.querySelectorAll('[onclick^="setOrgSticker"]').forEach(e => e.style.opacity = '.5');
+    el.style.opacity = '1';
+  }
+}
+
 // ── CONFIG ────────────────────────────────────────────────────────────────
 // Read api from URL param if present
 const _urlP = new URLSearchParams(window.location.search);
