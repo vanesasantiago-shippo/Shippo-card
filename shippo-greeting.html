@@ -660,8 +660,30 @@ function refreshDates() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────
-refreshDates(); // Always use today's real date
-renderDashboard();
+// ── LOAD EMPLOYEES LIVE FROM GOOGLE SHEET ────────────────────
+async function loadEmployees() {
+  try {
+    const url = `${SCRIPT_URL}?action=getEmployees`;
+    const res = await fetch(url, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.employees && data.employees.length > 0) {
+      // Replace hardcoded data with live data
+      EMPLOYEES.length = 0;
+      data.employees.forEach(e => EMPLOYEES.push(e));
+      console.log(`Loaded ${EMPLOYEES.length} employees from sheet`);
+    }
+  } catch(e) {
+    console.log('Could not load from sheet, using cached data:', e);
+  }
+  refreshDates();
+  renderDashboard();
+}
+
+// Show loading state then load live data
+document.getElementById('stat-total').textContent = '...';
+document.getElementById('stat-30').textContent = '...';
+document.getElementById('cardsGrid').innerHTML = '<div class="empty-state"><div class="e-icon">⏳</div><p>Loading employees from sheet...</p></div>';
+loadEmployees();
 </script>
 </body>
 </html>
