@@ -330,8 +330,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </select>
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Color</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <div onclick="setSignerColor('#1a1a1a',this)" style="width:24px;height:24px;border-radius:50%;background:#1a1a1a;cursor:pointer;border:3px solid #1a1a1a;"></div>
+            <div onclick="setSignerColor('#1D9E75',this)" style="width:24px;height:24px;border-radius:50%;background:#1D9E75;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setSignerColor('#378ADD',this)" style="width:24px;height:24px;border-radius:50%;background:#378ADD;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setSignerColor('#7F77DD',this)" style="width:24px;height:24px;border-radius:50%;background:#7F77DD;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setSignerColor('#E67E22',this)" style="width:24px;height:24px;border-radius:50%;background:#E67E22;cursor:pointer;border:2px solid transparent;"></div>
+            <div onclick="setSignerColor('#E74C3C',this)" style="width:24px;height:24px;border-radius:50%;background:#E74C3C;cursor:pointer;border:2px solid transparent;"></div>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Sticker (optional)</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            <span onclick="setSignerSticker('🎉',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Party">🎉</span>
+            <span onclick="setSignerSticker('🚀',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Rocket">🚀</span>
+            <span onclick="setSignerSticker('💚',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Heart">💚</span>
+            <span onclick="setSignerSticker('⭐',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Star">⭐</span>
+            <span onclick="setSignerSticker('🎂',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Cake">🎂</span>
+            <span onclick="setSignerSticker('🦛',this)" style="font-size:22px;cursor:pointer;opacity:.5;transition:opacity .15s;" title="Hippo">🦛</span>
+          </div>
+        </div>
+      </div>
       <div id="signerSigPreview" style="font-family:'Dancing Script',cursive;font-size:17px;color:var(--muted);min-height:24px;margin-bottom:8px;"></div>
-      <button onclick="submitSignerMsg()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign this card 💚</button>
+      <button id="signerSubmitBtn" onclick="submitSignerMsg()" style="width:100%;padding:11px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign this card 💚</button>
     </div>
   </div>
 </div>
@@ -650,15 +674,29 @@ function renderMessages() {
     area.innerHTML = `<div class="empty-inside"><span style="font-size:32px">✍️</span><p style="font-size:13px">No messages yet — be the first to sign!</p></div>`;
     return;
   }
-  area.innerHTML = currentMessages.map(m => {
+  area.innerHTML = currentMessages.map((m,i) => {
     const sigFont = m.sigFont || 'Dancing Script,cursive';
     const sigPos = m.sigPos || 'left';
-    return `<div class="msg-entry">
+    return `<div class="msg-entry" style="position:relative;">
+      ${m.sticker ? `<span style="font-size:18px;position:absolute;top:8px;right:8px;">${m.sticker.e}</span>` : ''}
       <div class="msg-text" style="font-family:${m.font};color:${m.color||'#1a1a1a'};">${esc(m.text)}</div>
-      <div class="msg-sig" style="font-family:${sigFont};color:${m.color||'#1a1a1a'};text-align:${sigPos};">— ${esc(m.signer)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+        <div class="msg-sig" style="font-family:${sigFont};color:${m.color||'#1a1a1a'};text-align:${sigPos};">— ${esc(m.signer)}</div>
+        <button onclick="deleteMessage(${i})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;" title="Delete">🗑️</button>
+      </div>
     </div>`;
   }).join('');
   area.scrollTop = area.scrollHeight;
+}
+
+async function deleteMessage(idx) {
+  if(!confirm('Delete this message?')) return;
+  try {
+    const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(currentCardId) + '&index=' + idx;
+    await fetch(url, { redirect: 'follow' });
+    await loadMessages();
+    showToast('Message deleted');
+  } catch(e) { alert('Error deleting.'); }
 }
 
 async function submitSign() {
@@ -792,16 +830,51 @@ function renderSignerMessages() {
     list.innerHTML = '<p style="color:var(--muted);font-size:13px;font-style:italic;">Be the first to sign!</p>';
     return;
   }
-  list.innerHTML = signerMessages.map(m => `
-    <div class="msg-entry">
+  list.innerHTML = signerMessages.map((m,i) => `
+    <div class="msg-entry" style="position:relative;">
+      ${m.sticker ? `<span style="font-size:20px;position:absolute;top:8px;right:8px;">${m.sticker.e}</span>` : ''}
       <div class="msg-text" style="font-family:${m.font};color:${m.color||'#1a1a1a'};">${esc(m.text)}</div>
-      <div class="msg-sig" style="font-family:${m.sigFont||'Dancing Script,cursive'};color:${m.color||'#1a1a1a'};text-align:${m.sigPos||'right'};">— ${esc(m.signer)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+        <div class="msg-sig" style="font-family:${m.sigFont||'Dancing Script,cursive'};color:${m.color||'#1a1a1a'};">— ${esc(m.signer)}</div>
+        <button onclick="deleteSignerMsg(${i})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;" title="Delete message">🗑️</button>
+      </div>
     </div>`).join('');
+}
+
+async function deleteSignerMsg(idx) {
+  if(!confirm('Delete this message?')) return;
+  try {
+    const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(signerCardId) + '&index=' + idx;
+    await fetch(url, { redirect: 'follow' });
+    await loadSignerMessages();
+    showToast('Message deleted');
+  } catch(e) { alert('Error deleting. Please try again.'); }
 }
 
 function updateSignerPreview() {
   const name = document.getElementById('signerNameInput').value.trim();
   document.getElementById('signerSigPreview').textContent = name ? '— ' + name : '';
+}
+
+let signerColor = '#1a1a1a';
+let signerSticker = null;
+
+function setSignerColor(color, el) {
+  signerColor = color;
+  document.querySelectorAll('[onclick^="setSignerColor"]').forEach(e => e.style.border = '2px solid transparent');
+  el.style.border = '3px solid ' + color;
+  document.getElementById('signerSigPreview').style.color = color;
+}
+
+function setSignerSticker(emoji, el) {
+  if (signerSticker === emoji) {
+    signerSticker = null;
+    document.querySelectorAll('[onclick^="setSignerSticker"]').forEach(e => e.style.opacity = '.5');
+  } else {
+    signerSticker = emoji;
+    document.querySelectorAll('[onclick^="setSignerSticker"]').forEach(e => e.style.opacity = '.5');
+    el.style.opacity = '1';
+  }
 }
 
 async function submitSignerMsg() {
@@ -810,7 +883,19 @@ async function submitSignerMsg() {
   const font = document.getElementById('signerFontPick').value;
   if (!text || !signer) { alert('Please enter your name and a message.'); return; }
   
-  const msg = { text, signer, font, sigFont: 'Dancing Script,cursive', sigPos: 'right', color: '#1a1a1a', ts: Date.now() };
+  const btn = document.getElementById('signerSubmitBtn');
+  btn.textContent = '⏳ Signing...';
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  
+  const msg = { 
+    text, signer, font, 
+    sigFont: 'Dancing Script,cursive', 
+    sigPos: 'right', 
+    color: signerColor, 
+    ts: Date.now(),
+    sticker: signerSticker ? { e: signerSticker } : null
+  };
   try {
     const url = SCRIPT_URL + '?action=add&cardId=' + encodeURIComponent(signerCardId) + '&message=' + encodeURIComponent(JSON.stringify(msg));
     await fetch(url, { redirect: 'follow' });
@@ -821,7 +906,12 @@ async function submitSignerMsg() {
         <p>Your message has been added to the card. 💚</p>
       </div>`;
     await loadSignerMessages();
-  } catch(e) { alert('Error saving. Please try again.'); }
+  } catch(e) { 
+    btn.textContent = 'Sign this card 💚';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    alert('Error saving. Please try again.'); 
+  }
 }
 
 // ── RECIPIENT VIEW ────────────────────────────────────────────────────────
