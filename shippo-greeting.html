@@ -1048,6 +1048,8 @@ async function initRecipientView() {
   // SHIPPOVERSARY in p
   const recYears = document.getElementById('recipientYears');
   if(recYears) recYears.textContent = 'Shippoversary';
+  const recNameEl = document.getElementById('recipientName');
+  if(recNameEl) recNameEl.textContent = name || '';
 
   // Personal message title with name
   const recMsgTitle = document.getElementById('recipientMsgTitle');
@@ -1198,6 +1200,6 @@ loadEmployees();
 }
 </script>
 </body>
-<!-- built:20260717222516 -->
+<!-- built:20260717222530 -->
 <!-- old:20260717221353 -->
 </html>
