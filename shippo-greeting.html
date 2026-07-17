@@ -322,7 +322,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div class="form-field">
           <label>Font</label>
-          <select id="signerFontPick" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%;outline:none;">
+          <select id="signerFontPick" onchange="updateSignerPreview()" style="padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);width:100%;outline:none;">
             <option value="DM Sans,sans-serif">Default</option>
             <option value="Playfair Display,serif">Playfair</option>
             <option value="Dancing Script,cursive" selected>Handwritten</option>
@@ -648,6 +648,7 @@ function openCard(emp) {
 
 function showDashboard() {
   stopPoll();
+  window.history.pushState({}, '', window.location.pathname);
   showView('view-dashboard');
 }
 
@@ -861,7 +862,11 @@ async function deleteSignerMsg(idx, btn) {
 
 function updateSignerPreview() {
   const name = document.getElementById('signerNameInput').value.trim();
-  document.getElementById('signerSigPreview').textContent = name ? '— ' + name : '';
+  const font = document.getElementById('signerFontPick').value;
+  const prev = document.getElementById('signerSigPreview');
+  prev.textContent = name ? '— ' + name : '';
+  prev.style.fontFamily = font;
+  prev.style.fontSize = font.includes('Dancing') ? '20px' : font.includes('Playfair') ? '18px' : '15px';
 }
 
 let signerColor = '#1a1a1a';
@@ -1040,9 +1045,19 @@ async function loadEmployees() {
   }
   refreshDates();
   renderDashboard();
+  
+  // Restore manage view if ?manage= in URL
+  if (_manageParam && _manageName) {
+    const emp = EMPLOYEES.find(e => e.name === _manageName);
+    if (emp) openCard(emp);
+  }
 }
 
 // Check if this is a signer or recipient view
+const _manageParam = _urlP.get('manage');
+const _manageName = _urlP.get('name') ? decodeURIComponent(_urlP.get('name')) : null;
+const _manageYears = _urlP.get('years') ? parseInt(_urlP.get('years')) : null;
+
 if (IS_SIGNER) { 
   document.getElementById('view-dashboard').style.display = 'none';
   document.getElementById('view-card').style.display = 'none';
