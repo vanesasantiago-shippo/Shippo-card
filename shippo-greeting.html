@@ -678,25 +678,29 @@ function renderMessages() {
     const sigFont = m.sigFont || 'Dancing Script,cursive';
     const sigPos = m.sigPos || 'left';
     return `<div class="msg-entry" style="position:relative;">
-      ${m.sticker ? `<span style="font-size:18px;position:absolute;top:8px;right:8px;">${m.sticker.e}</span>` : ''}
+      ${m.sticker ? `<div style="font-size:22px;margin-bottom:4px;">${m.sticker.e}</div>` : ''}
       <div class="msg-text" style="font-family:${m.font};color:${m.color||'#1a1a1a'};">${esc(m.text)}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
         <div class="msg-sig" style="font-family:${sigFont};color:${m.color||'#1a1a1a'};text-align:${sigPos};">— ${esc(m.signer)}</div>
-        <button onclick="deleteMessage(${i})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;" title="Delete">🗑️</button>
+        <button id="del-o-${i}" onclick="deleteMessage(${i},this)" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;" title="Delete">🗑️</button>
       </div>
     </div>`;
   }).join('');
   area.scrollTop = area.scrollHeight;
 }
 
-async function deleteMessage(idx) {
+async function deleteMessage(idx, btn) {
   if(!confirm('Delete this message?')) return;
+  if(btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(currentCardId) + '&index=' + idx;
     await fetch(url, { redirect: 'follow' });
     await loadMessages();
-    showToast('Message deleted');
-  } catch(e) { alert('Error deleting.'); }
+    showToast('✅ Message deleted');
+  } catch(e) { 
+    if(btn) { btn.textContent = '🗑️'; btn.disabled = false; }
+    alert('Error deleting.'); 
+  }
 }
 
 async function submitSign() {
@@ -832,23 +836,27 @@ function renderSignerMessages() {
   }
   list.innerHTML = signerMessages.map((m,i) => `
     <div class="msg-entry" style="position:relative;">
-      ${m.sticker ? `<span style="font-size:20px;position:absolute;top:8px;right:8px;">${m.sticker.e}</span>` : ''}
+      ${m.sticker ? `<div style="font-size:22px;margin-bottom:4px;">${m.sticker.e}</div>` : ''}
       <div class="msg-text" style="font-family:${m.font};color:${m.color||'#1a1a1a'};">${esc(m.text)}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
         <div class="msg-sig" style="font-family:${m.sigFont||'Dancing Script,cursive'};color:${m.color||'#1a1a1a'};">— ${esc(m.signer)}</div>
-        <button onclick="deleteSignerMsg(${i})" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;" title="Delete message">🗑️</button>
+        <button id="del-s-${i}" onclick="deleteSignerMsg(${i},this)" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;" title="Delete message">🗑️</button>
       </div>
     </div>`).join('');
 }
 
-async function deleteSignerMsg(idx) {
+async function deleteSignerMsg(idx, btn) {
   if(!confirm('Delete this message?')) return;
+  if(btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(signerCardId) + '&index=' + idx;
     await fetch(url, { redirect: 'follow' });
     await loadSignerMessages();
-    showToast('Message deleted');
-  } catch(e) { alert('Error deleting. Please try again.'); }
+    showToast('✅ Message deleted');
+  } catch(e) { 
+    if(btn) { btn.textContent = '🗑️'; btn.disabled = false; }
+    alert('Error deleting. Please try again.'); 
+  }
 }
 
 function updateSignerPreview() {
@@ -864,6 +872,7 @@ function setSignerColor(color, el) {
   document.querySelectorAll('[onclick^="setSignerColor"]').forEach(e => e.style.border = '2px solid transparent');
   el.style.border = '3px solid ' + color;
   document.getElementById('signerSigPreview').style.color = color;
+  document.getElementById('signerMsgText').style.color = color;
 }
 
 function setSignerSticker(emoji, el) {
