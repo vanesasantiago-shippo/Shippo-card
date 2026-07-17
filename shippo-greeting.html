@@ -901,8 +901,8 @@ async function initRecipientView() {
   if(recYears) recYears.textContent = recFirstName 
     ? 'Happy ' + (years ? ordinal(parseInt(years)) + ' Shippoversary, ' + recFirstName + '!' : 'Shippoversary, ' + recFirstName + '!')
     : 'Happy Shippoversary!';
-  const msgTitle = document.getElementById('recipientMsgTitle');
-  if(msgTitle && recFirstName) msgTitle.textContent = recFirstName + ', here\'s what your Shippo family has to say to you...';
+  const recMsgTitle = document.getElementById('recipientMsgTitle');
+  if(recMsgTitle && recFirstName) recMsgTitle.textContent = recFirstName + ', here\'s what your Shippo family has to say to you...';
   const msgTitle = document.getElementById('recipientMsgTitle');
   if(msgTitle && firstName) msgTitle.textContent = firstName + ', here\'s what your team wanted to say...';
   
