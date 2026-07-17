@@ -1052,6 +1052,7 @@ function renderRecipientMessages(msgs) {
   document.getElementById('recipientPages').innerHTML = pages.map((pg, pi) =>
     `<div class="r-page${pi===rPageIdx?' active':''}">${pg.map(m => `
       <div class="msg-entry">
+        ${m.sticker ? `<div style="font-size:24px;margin-bottom:4px;">${m.sticker.e}</div>` : ''}
         <div class="msg-text" style="font-family:${m.font};color:${m.color||'#1a1a1a'};">${esc(m.text)}</div>
         <div class="msg-sig" style="font-family:${m.sigFont||'Dancing Script,cursive'};color:${m.color||'#1a1a1a'};text-align:${m.sigPos||'right'};">— ${esc(m.signer)}</div>
       </div>`).join('')}</div>`
