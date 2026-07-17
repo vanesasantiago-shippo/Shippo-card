@@ -663,33 +663,36 @@ function refreshDates() {
 // ── LOAD EMPLOYEES LIVE FROM GOOGLE SHEET ────────────────────
 async function loadEmployees() {
   try {
-    const url = SCRIPT_URL + '?action=getEmployees';
-    const res = await fetch(url, { redirect: 'follow', cache: 'no-cache' });
+    // Read directly from Google Sheet CSV - always up to date
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/1wpfjadgtR-wN7XU6GV9H97hxY3QW0WrMDnR2wEREhr8/export?format=csv&sheet=Database';
+    const res = await fetch(csvUrl, { redirect: 'follow', cache: 'no-cache' });
     const text = await res.text();
-    const data = JSON.parse(text);
-    if (data.employees && data.employees.length > 0) {
-      // Normalize start dates - sheet returns full date strings, convert to MM/DD/YYYY
-      const normalized = data.employees
-        .filter(e => e.name && e.start)
-        .map(e => {
-          let start = e.start;
-          // If it's a full date string like "Mon Jul 07 2025 08:00:00..."
-          if (start.length > 10) {
-            const d = new Date(start);
-            if (!isNaN(d)) {
-              start = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-            }
-          }
-          return { name: e.name, manager: e.manager || '', start };
-        });
+    
+    // Parse CSV
+    const lines = text.trim().split('\n');
+    const newEmployees = [];
+    
+    for (let i = 1; i < lines.length; i++) {
+      // Handle CSV with quoted fields
+      const cols = lines[i].match(/(".*?"|[^,]+)(?=,|$)/g) || [];
+      const clean = cols.map(c => c.replace(/^"|"$/g, '').trim());
+      
+      const name  = clean[0] || '';
+      const manager = clean[2] || '';
+      const start = clean[5] || '';
+      
+      if (name && start) {
+        newEmployees.push({ name, manager, start });
+      }
+    }
+    
+    if (newEmployees.length > 0) {
       EMPLOYEES.length = 0;
-      normalized.forEach(e => EMPLOYEES.push(e));
-      console.log('Loaded ' + EMPLOYEES.length + ' employees from sheet');
-    } else {
-      console.log('No employees returned:', JSON.stringify(data).slice(0,200));
+      newEmployees.forEach(e => EMPLOYEES.push(e));
+      console.log('Loaded ' + EMPLOYEES.length + ' employees from Google Sheet');
     }
   } catch(e) {
-    console.log('Load error:', e.message);
+    console.log('Sheet load error, using cached data:', e.message);
   }
   refreshDates();
   renderDashboard();
