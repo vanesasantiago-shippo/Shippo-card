@@ -733,7 +733,7 @@ async function submitSign() {
   const signer = document.getElementById('orgSignerName').value.trim();
   const font = document.getElementById('fontPick').value;
   if(!text || !signer) { alert('Please enter your name and a message.'); return; }
-  const msg = {text, signer, font, sigFont:'Dancing Script,cursive', sigPos:'right', color:'#1a1a1a', ts:Date.now()};
+  const msg = {text, signer, font, sigFont:'Dancing Script,cursive', sigPos:'right', color: orgColor || '#1a1a1a', sticker: orgSticker ? {e: orgSticker} : null, ts:Date.now()};
   try {
     const url = `${SCRIPT_URL}?action=add&cardId=${encodeURIComponent(currentCardId)}&message=${encodeURIComponent(JSON.stringify(msg))}`;
     await fetch(url, {redirect:'follow'});
