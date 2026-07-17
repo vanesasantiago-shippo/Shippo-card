@@ -758,7 +758,6 @@ async function submitSign(btn) {
   const font = document.getElementById('fontPick').value;
   
   if(!text || !signer) { 
-    // Reset button if validation fails
     if(btn) { btn.textContent='Sign this card'; btn.disabled=false; btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
     alert('Please enter your name and a message.'); 
     return; 
@@ -766,11 +765,14 @@ async function submitSign(btn) {
   
   const msg = {text, signer, font, sigFont:'Dancing Script,cursive', sigPos:'right', color: orgColor || '#1a1a1a', sticker: orgSticker ? {e: orgSticker} : null, ts:Date.now()};
   
-  // Optimistic UI - show message instantly
+  // Stop poll so it doesn't overwrite our optimistic update
+  stopPoll();
+  
+  // Show message instantly
   currentMessages.push(msg);
   renderMessages();
   
-  // Reset form and button IMMEDIATELY
+  // Reset form and button immediately
   document.getElementById('msgText').value = '';
   document.getElementById('orgSignerName').value = '';
   const sp = document.getElementById('sigPreview');
@@ -778,9 +780,11 @@ async function submitSign(btn) {
   if(btn) { btn.textContent='Sign this card'; btn.disabled=false; btn.style.opacity='1'; btn.style.pointerEvents='auto'; }
   showToast('Message added!');
   
-  // Save in background - fire and forget
+  // Save to server, then resume polling after 3 seconds
   const url = SCRIPT_URL + '?action=add&cardId=' + encodeURIComponent(currentCardId) + '&message=' + encodeURIComponent(JSON.stringify(msg));
-  fetch(url, {redirect:'follow'}).catch(e => console.log('Save error:', e));
+  fetch(url, {redirect:'follow'})
+    .catch(e => console.log('Save error:', e))
+    .finally(() => { setTimeout(() => startPoll(), 3000); });
 }
 
 function updateSigPreview() {
