@@ -738,18 +738,20 @@ function renderMessages() {
   area.scrollTop = area.scrollHeight;
 }
 
-async function deleteMessage(idx, btn) {
+function deleteMessage(idx, btn) {
   if(!confirm('Delete this message?')) return;
-  if(btn) { btn.textContent = '⏳'; btn.disabled = true; }
-  try {
-    const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(currentCardId) + '&index=' + idx;
-    await fetch(url, { redirect: 'follow' });
-    await loadMessages();
-    showToast('✅ Message deleted');
-  } catch(e) { 
-    if(btn) { btn.textContent = '🗑️'; btn.disabled = false; }
-    alert('Error deleting.'); 
-  }
+  
+  // Remove instantly from screen
+  stopPoll();
+  currentMessages.splice(idx, 1);
+  renderMessages();
+  showToast('Message deleted');
+  
+  // Delete from server in background
+  const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(currentCardId) + '&index=' + idx;
+  fetch(url, { redirect: 'follow' })
+    .catch(e => console.log('Delete error:', e))
+    .finally(() => setTimeout(() => startPoll(), 3000));
 }
 
 async function submitSign(btn) {
@@ -915,18 +917,20 @@ function renderSignerMessages() {
     </div>`).join('');
 }
 
-async function deleteSignerMsg(idx, btn) {
+function deleteSignerMsg(idx, btn) {
   if(!confirm('Delete this message?')) return;
-  if(btn) { btn.textContent = '⏳'; btn.disabled = true; }
-  try {
-    const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(signerCardId) + '&index=' + idx;
-    await fetch(url, { redirect: 'follow' });
-    await loadSignerMessages();
-    showToast('✅ Message deleted');
-  } catch(e) { 
-    if(btn) { btn.textContent = '🗑️'; btn.disabled = false; }
-    alert('Error deleting. Please try again.'); 
-  }
+  
+  // Remove instantly from screen
+  stopSignerPoll();
+  signerMessages.splice(idx, 1);
+  renderSignerMessages();
+  showToast('Message deleted');
+  
+  // Delete from server in background
+  const url = SCRIPT_URL + '?action=delete&cardId=' + encodeURIComponent(signerCardId) + '&index=' + idx;
+  fetch(url, { redirect: 'follow' })
+    .catch(e => console.log('Delete error:', e))
+    .finally(() => setTimeout(() => startSignerPoll(), 3000));
 }
 
 function updateSignerPreview() {
