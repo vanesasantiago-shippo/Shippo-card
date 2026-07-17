@@ -885,9 +885,7 @@ async function initSignerView() {
   await loadSignerMessages();
   
   // Auto-refresh every 5 seconds
-  setInterval(async () => {
-    await loadSignerMessages();
-  }, 5000);
+  startSignerPoll();
 }
 
 async function loadSignerMessages() {
@@ -963,14 +961,29 @@ function setSignerSticker(emoji, el) {
 }
 
 let _signerSubmitting = false;
-async function submitSignerMsg() {
-  if(_signerSubmitting) return; // hard block double submit
+let _signerPollTimer = null;
+
+function stopSignerPoll() {
+  if(_signerPollTimer) { clearInterval(_signerPollTimer); _signerPollTimer = null; }
+}
+
+function startSignerPoll() {
+  stopSignerPoll();
+  _signerPollTimer = setInterval(async () => { await loadSignerMessages(); }, 5000);
+}
+
+function submitSignerMsg() {
+  if(_signerSubmitting) return;
   _signerSubmitting = true;
   
   const text = document.getElementById('signerMsgText').value.trim();
   const signer = document.getElementById('signerNameInput').value.trim();
   const font = document.getElementById('signerFontPick').value;
-  if (!text || !signer) { _signerSubmitting = false; alert('Please enter your name and a message.'); return; }
+  if (!text || !signer) { 
+    _signerSubmitting = false; 
+    alert('Please enter your name and a message.'); 
+    return; 
+  }
   
   const btn = document.getElementById('signerSubmitBtn');
   if(btn) { btn.textContent = '⏳ Signing...'; btn.disabled = true; btn.style.opacity = '0.7'; btn.style.pointerEvents = 'none'; }
@@ -983,22 +996,30 @@ async function submitSignerMsg() {
     ts: Date.now(),
     sticker: signerSticker ? { e: signerSticker } : null
   };
-  try {
-    const url = SCRIPT_URL + '?action=add&cardId=' + encodeURIComponent(signerCardId) + '&message=' + encodeURIComponent(JSON.stringify(msg));
-    await fetch(url, { redirect: 'follow' });
-    document.getElementById('signerFormBox').innerHTML = `
-      <div class="signer-success">
-        <div class="s-icon">🎉</div>
-        <h3>You're signed!</h3>
-        <p>Your message has been added to the card. 💚</p>
-      </div>`;
-    await loadSignerMessages();
-  } catch(e) { 
-    btn.textContent = 'Sign this card';
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    alert('Error saving. Please try again.'); 
-  }
+
+  // Stop poll so it doesn't overwrite optimistic update
+  stopSignerPoll();
+
+  // Show message instantly in the list
+  signerMessages.push(msg);
+  renderSignerMessages();
+
+  // Show success immediately
+  document.getElementById('signerFormBox').innerHTML = `
+    <div class="signer-success">
+      <div class="s-icon">🎉</div>
+      <h3>You're signed!</h3>
+      <p>Your message has been added to the card.</p>
+    </div>`;
+
+  // Save in background, resume poll after 3 seconds
+  const url = SCRIPT_URL + '?action=add&cardId=' + encodeURIComponent(signerCardId) + '&message=' + encodeURIComponent(JSON.stringify(msg));
+  fetch(url, { redirect: 'follow' })
+    .catch(e => console.log('Save error:', e))
+    .finally(() => { 
+      _signerSubmitting = false;
+      setTimeout(() => startSignerPoll(), 3000); 
+    });
 }
 
 // ── RECIPIENT VIEW ────────────────────────────────────────────────────────
